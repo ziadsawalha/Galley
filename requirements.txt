@@ -1,0 +1,4 @@
+docker-py
+netifaces
+PyYAML
+pbr
