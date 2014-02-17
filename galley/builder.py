@@ -347,7 +347,7 @@ def build_environment(config):
             images[index]['image'] = image
 
     for index, data in resources.iteritems():
-        if data['host_port'] == "random":
+        if data['host_port'] == "{{random_port}}":
             data['host_port'] = select_random_port()
     # Find image references in resources and replace with
     # image names/IDs
