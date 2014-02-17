@@ -34,7 +34,7 @@ Requirements:
 		  --no-destroy  Do not destroy images and containers.
 
 ## .galley.yml
-You define the environment you want Galley to create in the `.galley.yml` file. Place this file in the root of your applications directory. `.galley.yml` consists of three sections: `images`, `resources`, and `testparams`.
+You define the environment you want Galley to create in the `.galley.yml` file. Place this file in your application's root directory. `.galley.yml` consists of three sections: `images`, `resources`, and `testparams`.
 
 ### images
 
