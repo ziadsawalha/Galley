@@ -31,6 +31,9 @@ def connect(timeout=30):
     # For boot2docker and docker-osx compatibility.
     if 'DOCKER_HOST' in os.environ.keys():
         docker_host = os.environ['DOCKER_HOST']
+        # docker-py does not support 'tcp://' as base_url; however,
+        # the docker client does not support 'http://' for DOCKER_HOST.
+        # So, we need to convert DOCKER_HOST for compatibility.
         if 'tcp://' in docker_host:
             docker_host = docker_host.replace("tcp://", "http://")
         base_url = docker_host
@@ -83,7 +86,11 @@ def check_if_container_exists(container):
     # even though it is documented. When/If it does, the
     # following API call should work instead of the shell out.
     # conts = c.containers(all=True)
-    conts = subprocess.check_output(['docker', 'ps', '-a'])
+    if 'DOCKER_HOST' in os.environ.keys():
+        host = os.environ['DOCKER_HOST']
+        conts = subprocess.check_output(['docker', '-H', host, 'ps', '-a'])
+    else:
+        conts = subprocess.check_output(['docker', 'ps', '-a'])
     for cont in conts.splitlines():
         if container in cont:
             return True
@@ -160,18 +167,18 @@ def get_ip_address():
     """Attempts to get IP address for eth1, falls back to eth0."""
     # For boot2docker and docker-osx compatibility.
     if 'DOCKER_HOST' in os.environ.keys():
-        docker_host = urllib2.urlparse.urlparse(os.environ['DOCKER_HOST'])[1]
-        if ':' in docker_host:
-            ip = docker_host.split(":")[0]
-            return ip
-        else:
-            return docker_host
-    try:
-        ip = netifaces.ifaddresses('eth1')[netifaces.AF_INET][0]['addr']
-    except Exception:
-        ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
+        if ('127.0.0.1' or 'localhost') not in os.environ['DOCKER_HOST']:
+            host = urllib2.urlparse.urlparse(os.environ['DOCKER_HOST'])[1]
+            if ':' in host:
+                host = host.split(":")[0]
+            return host
 
-    return ip
+    try:
+        host = netifaces.ifaddresses('eth1')[netifaces.AF_INET][0]['addr']
+    except Exception:
+        host = netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr']
+
+    return host
 
 
 def kill(container, signal=None):
