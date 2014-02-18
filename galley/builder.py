@@ -88,9 +88,11 @@ def check_if_container_exists(container):
     # conts = c.containers(all=True)
     if 'DOCKER_HOST' in os.environ.keys():
         host = os.environ['DOCKER_HOST']
-        conts = subprocess.check_output(['docker', '-H', host, 'ps', '-a'])
+        conts = subprocess.check_output(['docker', '-H', host, 'ps', '-a',
+                                        '-notrunc=true'])
     else:
-        conts = subprocess.check_output(['docker', 'ps', '-a'])
+        conts = subprocess.check_output(['docker', 'ps', '-a',
+                                        '-notrunc=true'])
     for cont in conts.splitlines():
         if container in cont:
             return True
@@ -214,11 +216,14 @@ def remove_container(container):
     """Remove a Docker container from the system."""
     c = connect()
     print("Removing container %s." % container[:12])
-    c.remove_container(container)
-    if not check_if_container_exists(container):
-        print("Successfully removed container %s." % container[:12])
+    if check_if_container_exists(container):
+        c.remove_container(container)
+        if not check_if_container_exists(container):
+            print("Successfully removed container %s." % container[:12])
+        else:
+            print("Failed to remove container: %s." % container[:12])
     else:
-        print("Failed to remove container: %s." % container[:12])
+        print("Container %s not found. Skipping..." % container[:12])
 
 
 def remove_image(image, tag="latest"):
@@ -228,16 +233,25 @@ def remove_image(image, tag="latest"):
     if ':' in image:
         tag = image.split(':')[1]
         image = image.split(':')[0]
-        c.remove_image(image)
+        print("Removing image %s:%s." % (image, tag))
+        if check_if_image_exists(image):
+            c.remove_image(image)
+        else:
+            print("Image %s:%s not found. Skipping..." % (image, tag))
+            return False
     else:
         try:
+            print("Removing image %s:%s." % (image, tag))
             imagetags = image + ':' + tag
             c.remove_image(imagetags)
         except docker.APIError:
             # Probably an image ID, so it has no tag.
-            c.remove_image(image)
+            if check_if_image_exists(image):
+                c.remove_image(image)
+            else:
+                print("Image %s not found. Skipping..." % image)
+                return False
 
-    print("Removing image %s:%s." % (image, tag))
     if not check_if_image_exists(image, tag):
         print("Successfully removed image %s:%s." % (image, tag))
     else:
