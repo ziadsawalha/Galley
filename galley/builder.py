@@ -41,7 +41,7 @@ def connect(timeout=30):
         base_url = 'unix://var/run/docker.sock'
 
     c = docker.Client(base_url=base_url,
-                      version='1.8',
+                      version='1.7',
                       timeout=timeout)
     return c
 
