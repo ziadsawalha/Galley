@@ -1,4 +1,4 @@
-docker-py
-netifaces
-PyYAML
-pbr
+docker-py==0.2.3
+PyYAML==3.10
+netifaces==0.8
+pbr==0.7.0
