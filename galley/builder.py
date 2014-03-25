@@ -130,6 +130,20 @@ def check_if_running(container):
             return True
 
 
+def clean(environment, nodestroy):
+  # Clean the house...
+  if not nodestroy:
+      for index, data in environment['resources'].iteritems():
+          kill(data['container'])
+          remove_container(data['container'])
+      for index, data in environment['images'].iteritems():
+          if 'persist' in data.keys():
+              if not data['persist']:
+                  remove_image(data['image'])
+          else:
+              remove_image(data['image'])
+
+
 def cleanup(containers=None, images=None):
     """Remove Images and Containers from System."""
     print("Cleaning Up Environment:")
@@ -446,19 +460,25 @@ def run_tests(config, test_file_pattern, nodestroy):
         pattern=test_file_pattern
     )
     runner = unittest.runner.TextTestRunner()
-    runner.run(galleytests)
+    print("Running tests:\n")
+    results = runner.run(galleytests)
+    test_count = results.testsRun
+    test_errors = len(results.errors)
+    test_failures = len(results.failures)
 
-    # Clean the house...
-    if not nodestroy:
-        for index, data in environment['resources'].iteritems():
-            kill(data['container'])
-            remove_container(data['container'])
-        for index, data in environment['images'].iteritems():
-            if 'persist' in data.keys():
-                if not data['persist']:
-                    remove_image(data['image'])
-            else:
-                remove_image(data['image'])
-
-    total_time = time.time() - start_time
-    print("\nTotal Elapsed Time: %.2f seconds." % total_time)
+    if not results.wasSuccessful():
+        print("\n   Tests Run: %d" % test_count)
+        print("Tests Failed: %d" % test_failures)
+        print(" Test Errors: %d" % test_errors)
+        clean(environment, nodestroy)
+        total_time = time.time() - start_time
+        print("\nTotal Elapsed Time: %.2f seconds." % total_time)
+        sys.exit(1)
+    else:
+        print("\n   Tests Run: %d" % test_count)
+        print("Tests Failed: %d" % test_failures)
+        print(" Test Errors: %d\n" % test_errors)
+        clean(environment, nodestroy)
+        total_time = time.time() - start_time
+        print("\nTotal Elapsed Time: %.2f seconds." % total_time)
+        sys.exit(0)
