@@ -17,6 +17,15 @@
 # THIS FILE IS MANAGED BY THE GLOBAL REQUIREMENTS REPO - DO NOT EDIT
 import setuptools
 
+
+def read(fname):
+    '''Read a file's contents'''
+    try:
+        return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    except StandardError:
+        return ""
+
 setuptools.setup(
+    long_description=read('README.rst'),
     setup_requires=['pbr'],
     pbr=True)
