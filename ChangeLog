@@ -1,0 +1,20 @@
+CHANGES
+=======
+
+0.2.0
+-----
+
+* Update to use Docker 0.10.0
+* Change author-email
+
+0.0.1
+-----
+
+* Lock requirements
+* Exit 1 if errors or failures from tests
+* Use API version 1.7
+* Fixes for image and container removal
+* Updates for remote Docker hosts
+* Fix language in README
+* Update random port template to newer syntax
+* First commit
