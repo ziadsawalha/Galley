@@ -1,5 +1,4 @@
-docker-py==0.3.1
-netifaces==0.8
-pbr==0.7.0
-PyYAML==3.10
-simplejson==3.4.0
+docker-py>=0.3.1
+netifaces>=0.8
+pbr>=0.7.0
+PyYAML>=3.10
