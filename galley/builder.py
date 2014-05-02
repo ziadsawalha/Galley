@@ -12,6 +12,7 @@
 #
 
 import docker
+import json
 import netifaces
 import os
 import re
@@ -41,7 +42,7 @@ def connect(timeout=30):
         base_url = 'unix://var/run/docker.sock'
 
     c = docker.Client(base_url=base_url,
-                      version='1.7',
+                      version='1.10',
                       timeout=timeout)
     return c
 
@@ -51,8 +52,18 @@ def build(path=None, tag=None, quiet=False, fileobj=None, nocache=False,
     """Build Docker image from Dockerfile in provided path."""
     print("Building image %s with tag %s." % (path, tag))
     c = connect(timeout)
-    image, _ = c.build(path=path, tag=tag, quiet=quiet, fileobj=fileobj,
-                       nocache=nocache, rm=rm, stream=stream)
+    #image, _ = c.build(path=path, tag=tag, quiet=quiet, fileobj=fileobj,
+    #                   nocache=nocache, rm=rm, stream=stream)
+    stream = c.build(path=path, tag=tag, quiet=quiet, fileobj=fileobj,
+                     nocache=nocache, rm=rm, stream=stream)
+    image = None
+    log = ''
+    for chunk in stream:
+        msg = json.loads(chunk)
+        log += msg['stream']
+        #print chunk
+        if 'Successfully built' in msg['stream']:
+            image = msg['stream'].split(' ')[2].strip()
     time.sleep(5)
     if image:
         if check_if_image_exists(image):
@@ -69,12 +80,13 @@ def build(path=None, tag=None, quiet=False, fileobj=None, nocache=False,
             sys.exit(1)
     elif retry:
         print("Failed building image from %s with tag %s. \
-              Retrying build." % (image, path))
+              Retrying build." % (path, tag))
         build(path=path, tag=tag, quiet=quiet, fileobj=fileobj,
               nocache=nocache, rm=rm, stream=stream, retry=False)
     else:
-        print("Failed building image from %s with tag %s." % (image, tag))
+        print("Failed building image from %s with tag %s." % (path, tag))
         print("Build Output: \n")
+        print(log)
         sys.exit(1)
 
 
@@ -89,10 +101,10 @@ def check_if_container_exists(container):
     if 'DOCKER_HOST' in os.environ.keys():
         host = os.environ['DOCKER_HOST']
         conts = subprocess.check_output(['docker', '-H', host, 'ps', '-a',
-                                        '-notrunc=true'])
+                                        '--notrunc=true'])
     else:
         conts = subprocess.check_output(['docker', 'ps', '-a',
-                                        '-notrunc=true'])
+                                        '--notrunc=true'])
     for cont in conts.splitlines():
         if container in cont:
             return True
@@ -131,17 +143,17 @@ def check_if_running(container):
 
 
 def clean(environment, nodestroy):
-  # Clean the house...
-  if not nodestroy:
-      for index, data in environment['resources'].iteritems():
-          kill(data['container'])
-          remove_container(data['container'])
-      for index, data in environment['images'].iteritems():
-          if 'persist' in data.keys():
-              if not data['persist']:
-                  remove_image(data['image'])
-          else:
-              remove_image(data['image'])
+    # Clean the house...
+    if not nodestroy:
+        for index, data in environment['resources'].iteritems():
+            kill(data['container'])
+            remove_container(data['container'])
+        for index, data in environment['images'].iteritems():
+            if 'persist' in data.keys():
+                if not data['persist']:
+                    remove_image(data['image'])
+            else:
+                remove_image(data['image'])
 
 
 def cleanup(containers=None, images=None):
@@ -431,7 +443,8 @@ def build_environment(config):
                 port_bindings = {data['cont_port']: data['host_port']}
         if 'host_volume' in data.keys():
             if 'cont_volume' in data.keys():
-                binds = {data['host_volume']: data['cont_volume']}
+                host_volume = os.path.abspath(data['host_volume'])
+                binds = {host_volume: data['cont_volume']}
         start(data['container'], port_bindings=port_bindings, binds=binds)
         time.sleep(10)  # Allow container to warm-up before starting next one
 

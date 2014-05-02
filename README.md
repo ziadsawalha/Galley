@@ -9,7 +9,7 @@ Getting Started Guide
 Requirements:
 
 * Python 2.7.5
-* Docker >= 0.7.3
+* Docker >= 0.10.0
 
 ## Installation
 
@@ -298,7 +298,7 @@ Requirements:
 
 2. Install docker-osx:
 
-		curl https://raw.github.com/noplay/docker-osx/0.7.6/docker-osx > /usr/local/bin/docker-osx
+		curl https://raw.github.com/noplay/docker-osx/0.8.0/docker-osx > /usr/local/bin/docker-osx
 		chmod +x /usr/local/bin/docker-osx
 
 3. Start docker-osx:
