@@ -101,10 +101,10 @@ def check_if_container_exists(container):
     if 'DOCKER_HOST' in os.environ.keys():
         host = os.environ['DOCKER_HOST']
         conts = subprocess.check_output(['docker', '-H', host, 'ps', '-a',
-                                        '--notrunc=true'])
+                                        '--no-trunc=true'])
     else:
         conts = subprocess.check_output(['docker', 'ps', '-a',
-                                        '--notrunc=true'])
+                                        '--no-trunc=true'])
     for cont in conts.splitlines():
         if container in cont:
             return True
