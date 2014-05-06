@@ -1,9 +1,15 @@
 CHANGES
 =======
 
+0.2.3
+-----
+
+* Improve build error handling
+
 0.2.2
 -----
 
+* Update changelog
 * Fix bug in no-trunc command
 
 0.2.1
