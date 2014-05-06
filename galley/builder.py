@@ -60,10 +60,14 @@ def build(path=None, tag=None, quiet=False, fileobj=None, nocache=False,
     log = ''
     for chunk in stream:
         msg = json.loads(chunk)
-        log += msg['stream']
-        #print chunk
-        if 'Successfully built' in msg['stream']:
-            image = msg['stream'].split(' ')[2].strip()
+        stream = msg.get('stream')
+        error = msg.get('error')
+        if stream:
+            log += stream
+            if 'Successfully built' in stream:
+                image = stream.split(' ')[2].strip()
+        if error:
+            log += "ERROR: %s" % error
     time.sleep(5)
     if image:
         if check_if_image_exists(image):
