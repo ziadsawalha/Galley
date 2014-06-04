@@ -60,14 +60,13 @@ def build(path=None, tag=None, quiet=False, fileobj=None, nocache=False,
     log = ''
     for chunk in stream:
         msg = json.loads(chunk)
-        stream = msg.get('stream')
-        error = msg.get('error')
-        if stream:
-            log += stream
-            if 'Successfully built' in stream:
-                image = stream.split(' ')[2].strip()
-        if error:
-            log += "ERROR: %s" % error
+        if 'stream' in msg:
+            log += msg['stream']
+            if 'Successfully built' in msg['stream']:
+                image = msg['stream'].split(' ')[2].strip()
+        elif 'errorDetail' in msg:
+            print("Failed building image: %s" % msg['errorDetail']['message'])
+            sys.exit(1)
     time.sleep(5)
     if image:
         if check_if_image_exists(image):
@@ -80,7 +79,6 @@ def build(path=None, tag=None, quiet=False, fileobj=None, nocache=False,
         else:
             print("Failed building image. Image %s could \
                   not be found." % image)
-            print("Build Output: \n")
             sys.exit(1)
     elif retry:
         print("Failed building image from %s with tag %s. \
