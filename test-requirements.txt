@@ -1,6 +1,6 @@
 # maintain order of these two so that version dependencies don't break
 hacking==0.8.0
-pylint==1.0.0
+pylint==4.0.9
 
 # Alphabetical
 mock==1.0.1
